@@ -123,6 +123,7 @@ FILE_EXTENSIONS = {
     '.hrl': 'Erlang Header',
     '.hs': 'Haskell',
     '.lhs': 'Literate Haskell',
+    '.hcl': 'HCL (Terraform)',
     '.lua': 'Lua',
     '.r': 'R',
     '.rmd': 'R Markdown',
