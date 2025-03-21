@@ -236,7 +236,17 @@ def process_repository(repo_path: str, total_only: bool = False) -> Tuple[int, D
     file_counts = {}
 
     # Define directories to exclude
-    exclude_dirs = {'.git', 'venv', '.venv', '__pycache__', '.pytest_cache', '.mypy_cache'}
+    exclude_dirs = {
+        '.git',
+        'venv',
+        '.venv',
+        '__pycache__',
+        '.pytest_cache',
+        '.mypy_cache',
+        '.idea',
+        '.vscode',
+        'node_modules',
+        }
 
     # Get list of all files
     all_files = []
@@ -271,11 +281,11 @@ def main():
     if len(sys.argv) < 2:
         console.print("[red]Usage: token-counter <repository_url_or_path> [-total][/red]")
         sys.exit(1)
-        
+
     # Check for -total flag
     total_only = "-total" in sys.argv
     target = sys.argv[1] if sys.argv[1] != "-total" else sys.argv[2]
-    
+
     # Suppress all warnings if total_only is True
     if total_only:
         import logging
@@ -370,6 +380,12 @@ def main():
             "Claude 3 Haiku (200K)": 200000,
 
             # Google Models
+            "Gemini 2.0 Pro Experimental (2M)": 2048576,
+            "Gemini 2.0 Flash Thinking (1M)": 1048576,
+            "Gemini 2.0 Flash Lite (1M)": 1048576,
+            "Gemini 2.0 Flash (1M)": 1048576,
+            "Gemini 1.5 Pro (2M)": 2097152,
+            "Gemini 1.5 Flash (1M)": 1048576,
             "Gemini Pro (32K)": 32768,
             "PaLM 2 (8K)": 8192,
 
