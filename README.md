@@ -30,8 +30,8 @@ The script includes inline dependencies, so you can run it directly with uv:
 # Install uv if you haven't already
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Run the script directly (no virtual environment needed)
-uv run token_counter.py <path_or_repo>
+# Downloads and runs the script
+uvx --from codebase-token-counter token-counter <path_or_repo>
 ```
 
 ### Using pip
@@ -51,8 +51,8 @@ You can use the script to analyze both local directories and remote Git reposito
 
 ```bash
 # Using uv (recommended)
-uv run token_counter.py https://github.com/username/repo
-uv run token_counter.py .
+uvx --from codebase-token-counter token-counter https://github.com/username/repo
+uvx --from codebase-token-counter token-counter .
 
 # Using traditional python
 python token_counter.py https://github.com/username/repo
