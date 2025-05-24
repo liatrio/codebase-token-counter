@@ -17,6 +17,7 @@ A tool for analyzing codebases to understand their token usage and compatibility
   - Meta Models (Llama 2, Code Llama)
   - Other Models (Mistral, Mixtral, Yi, Cohere)
 - **Intelligent Directory Exclusion**: Automatically excludes common non-source directories (venv, .git, **pycache**, etc.)
+- **Build Directory Control**: Option to include or exclude build directories (node_modules, dist, build, etc.)
 
 ## Installation
 
@@ -57,6 +58,10 @@ uv run token_counter.py .
 # Using traditional python
 python token_counter.py https://github.com/username/repo
 python token_counter.py .
+
+# Additional options
+uv run token_counter.py . --ignore-build  # Exclude build directories (node_modules, dist, etc.)
+uv run token_counter.py . -total          # Output only the total token count
 ```
 
 ## Output Format
@@ -137,6 +142,12 @@ token-counter /path/to/your/codebase
 
 # Analyze a remote Git repository
 token-counter https://github.com/username/repo.git
+
+# Exclude build directories
+token-counter /path/to/your/codebase --ignore-build
+
+# Get only the total token count
+token-counter /path/to/your/codebase -total
 ```
 
 ## Supported File Types
