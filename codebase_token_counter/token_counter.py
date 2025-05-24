@@ -229,14 +229,27 @@ def format_number(num: int) -> str:
         return f"{num/1_000_000:.1f}M"
     return f"{num:,}"
 
-def process_repository(repo_path: str, total_only: bool = False) -> Tuple[int, Dict[str, int], Dict[str, int]]:
+def process_repository(repo_path: str, total_only: bool = False, ignore_build: bool = False) -> Tuple[int, Dict[str, int], Dict[str, int]]:
     """Process all files in the repository and count tokens."""
     total_tokens = 0
     extension_stats = {}
     file_counts = {}
 
     # Define directories to exclude
-    exclude_dirs = {'.git', 'venv', '.venv', '__pycache__', '.pytest_cache', '.mypy_cache'}
+    base_exclude_dirs = {
+        '.git', 'venv', '.venv', '__pycache__', '.pytest_cache', '.mypy_cache',
+        '.idea', '.vscode', '.vs', '.tox', '.nox', 'htmlcov', 'site-packages'
+    }
+    
+    build_dirs = {
+        'node_modules', '.next', 'build', 'dist', 'target', 'bin', 'obj',
+        '.nuxt', '.output', '.cache', '.temp', '.tmp', 'coverage',
+        '.coverage', '.nyc_output', '.sass-cache', '.parcel-cache',
+        'vendor', 'deps', '_build', '.gradle', '.terraform',
+        '.bundle', 'bower_components', 'jspm_packages'
+    }
+    
+    exclude_dirs = base_exclude_dirs | build_dirs if ignore_build else base_exclude_dirs
 
     # Get list of all files
     all_files = []
@@ -269,12 +282,23 @@ def process_repository(repo_path: str, total_only: bool = False) -> Tuple[int, D
 def main():
     # Check for correct number of arguments
     if len(sys.argv) < 2:
-        console.print("[red]Usage: token-counter <repository_url_or_path> [-total][/red]")
+        console.print("[red]Usage: token-counter <repository_url_or_path> [-total] [--ignore-build][/red]")
         sys.exit(1)
         
-    # Check for -total flag
+    # Check for flags
     total_only = "-total" in sys.argv
-    target = sys.argv[1] if sys.argv[1] != "-total" else sys.argv[2]
+    ignore_build = "--ignore-build" in sys.argv
+    
+    # Find the target (non-flag argument)
+    target = None
+    for arg in sys.argv[1:]:
+        if not arg.startswith('-'):
+            target = arg
+            break
+    
+    if target is None:
+        console.print("[red]Error: repository_url_or_path is required[/red]")
+        sys.exit(1)
     
     # Suppress all warnings if total_only is True
     if total_only:
@@ -302,7 +326,7 @@ def main():
             sys.exit(1)
 
     try:
-        total_tokens, extension_stats, file_counts = process_repository(analyze_path, total_only)
+        total_tokens, extension_stats, file_counts = process_repository(analyze_path, total_only, ignore_build)
     except Exception as e:
         if not total_only:
             console.print(f"[red]Error analyzing repository: {str(e)}[/red]")
@@ -358,30 +382,52 @@ def main():
         # Create and populate context window table
         windows = {
             # OpenAI Models
-            "GPT-3.5 (4K)": 4096,
+            "GPT-3.5 Turbo (16K)": 16384,
             "GPT-4 (8K)": 8192,
             "GPT-4 (32K)": 32768,
             "GPT-4 Turbo (128K)": 128000,
+            "GPT-4o (128K)": 128000,
+            "GPT-4o mini (128K)": 128000,
+            "o1-preview (128K)": 128000,
+            "o1-mini (128K)": 128000,
 
             # Anthropic Models
-            "Claude 2 (100K)": 100000,
             "Claude 3 Opus (200K)": 200000,
-            "Claude 3 Sonnet (200K)": 200000,
+            "Claude 3.5 Sonnet (200K)": 200000,
+            "Claude 3.5 Haiku (200K)": 200000,
             "Claude 3 Haiku (200K)": 200000,
 
             # Google Models
+            "Gemini 2.5 Flash Preview (1M)": 1048576,
+            "Gemini 2.5 Pro Preview (1M)": 1048576,
+            "Gemini 2.0 Flash (1M)": 1048576,
+            "Gemini 2.0 Flash-Lite (1M)": 1048576,
+            "Gemini 1.5 Pro (2M)": 2097152,
+            "Gemini 1.5 Flash (1M)": 1048576,
+            "Gemini 1.5 Flash-8B (1M)": 1048576,
             "Gemini Pro (32K)": 32768,
-            "PaLM 2 (8K)": 8192,
 
             # Meta Models
-            "Llama 2 (4K)": 4096,
+            "Llama 3.1 405B (128K)": 128000,
+            "Llama 3.1 70B (128K)": 128000,
+            "Llama 3.1 8B (128K)": 128000,
+            "Llama 3.2 90B (128K)": 128000,
+            "Llama 3.2 11B (128K)": 128000,
+            "Llama 3.2 3B (128K)": 128000,
+            "Llama 3.2 1B (128K)": 128000,
             "Code Llama (100K)": 100000,
 
-            # Other Models
-            "Mistral Large (32K)": 32768,
+            # Mistral Models
+            "Mistral Large 2 (128K)": 128000,
+            "Mistral Nemo (128K)": 128000,
+            "Mixtral 8x22B (64K)": 65536,
             "Mixtral 8x7B (32K)": 32768,
-            "Yi-34B (200K)": 200000,
-            "Cohere Command (128K)": 128000,
+
+            # Other Models
+            "Qwen2.5 72B (128K)": 128000,
+            "DeepSeek V2.5 (128K)": 128000,
+            "Yi-Lightning (1M)": 1000000,
+            "Cohere Command R+ (128K)": 128000,
         }
 
         context_table = Table(title="\n[bold]Context Window Comparisons[/bold]")
